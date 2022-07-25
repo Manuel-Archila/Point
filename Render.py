@@ -42,7 +42,7 @@ class Render(object):
         #pixel data
         for x in range(self.height):
             for y in range(self.width):
-                f.write(self.framebuffer[x][y])
+                f.write(self.framebuffer[y][x])
         f.close()
         
     def point(self, x, y):
@@ -78,7 +78,7 @@ class Render(object):
             offset += dy * 2
 
             if offset >= treshold:
-                y += 1 if y0 < y1 else -1
+                y += 1 if y0 < y1 else - 1
                 treshold += dx * 2
 
     def verifier(self, number):

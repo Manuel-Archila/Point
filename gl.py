@@ -1,4 +1,3 @@
-from hashlib import new
 from Render import *
 
 rend = None
@@ -31,7 +30,7 @@ def glViewPort(x, y, width, height):
         newheight = rend.height - 1
         rend.viewport = {"x": x, "y": y, "width": width, "height": newheight}
     else:
-        print("fresco")
+        #print("fresco")
         rend.viewport = {"x": x, "y": y, "width": width, "height": height}
 
 
@@ -59,6 +58,38 @@ def glVertex(x, y):
 def glColor(r, g, b):
     rend.setColor(r, g, b)
     
-def glFinish():
+def glFinish(name):
     global rend
-    rend.write("a.bmp")
+    rend.write(name)
+
+def glLine(x1, y1, x2, y2):
+    ini_x1 = (x1 + 1)
+    ini_y1 = (y1 + 1)
+    ini_x2 = (x2 + 1)
+    ini_y2 = (y2 + 1)
+    prop_x1= (ini_x1  * rend.viewport["width"])/2
+    prop_y1 = (ini_y1 * rend.viewport["height"])/2
+    prop_x2 = (ini_x2  * rend.viewport["width"])/2
+    prop_y2 = (ini_y2 * rend.viewport["height"])/2
+    print(prop_x1)
+    print(prop_y1)
+    print(prop_x2)
+    print(prop_y2)
+
+    rend.line(int(prop_x1), int(prop_y1), int(prop_x2), int(prop_y2))
+
+def rawLine(x1, y1, x2, y2):
+    global rend
+    rend.line(x1, y1, x2, y2)
+
+def rawPoint(x1, y1):
+    global rend
+    rend.point(x1, y1)
+
+def getX():
+    global rend
+    return rend.width
+
+def getY():
+    global rend
+    return rend.height
