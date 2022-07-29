@@ -95,24 +95,24 @@ class Render(object):
 
     
     def drawSquare(self, v1, v2, v3, v4):
-        self.line(v1[0], v1[1], v2[0], v2[1])
-        self.line(v2[0], v2[1], v3[0], v3[1])
-        self.line(v3[0], v3[1], v4[0], v4[1])
-        self.line(v4[0], v4[1], v1[0], v1[1])
+        self.line(round(v1[0]), round(v1[1]), round(v2[0]), round(v2[1]))
+        self.line(round(v2[0]), round(v2[1]), round(v3[0]), round(v3[1]))
+        self.line(round(v3[0]), round(v3[1]), round(v4[0]), round(v4[1]))
+        self.line(round(v4[0]), round(v4[1]), round(v1[0]), round(v1[1]))
+        
     
     def drawTriangle(self, v1, v2, v3):
-        self.line(v1[0], v1[1], v2[0], v2[1])
-        self.line(v2[0], v2[1], v3[0], v3[1])
-        self.line(v3[0], v3[1], v1[0], v1[1])
+        self.line(round(v1[0]), round(v1[1]), round(v2[0]), round(v2[1]))
+        self.line(round(v2[0]), round(v2[1]), round(v3[0]), round(v3[1]))
+        self.line(round(v3[0]), round(v3[1]), round(v1[0]), round(v1[1]))
     
     def transform_vertex(self, vertex, scale, translate):
-        return [((vertex[0] * scale[0]) + translate[0], (vertex[1] * scale[0] + translate[1]))]
+        return ((vertex[0] * scale[0]) + translate[0], (vertex[1] * scale[0] + translate[1]))
     
     def modelGenerator(self, filename, scale_factor, translate_factor):
         cube = Obj.Obj(filename)
         for face in cube.faces:
             if len(face) == 4:
-                print(face)
                 f1 = face[0][0] - 1
                 f2 = face[1][0] - 1
                 f3 = face[2][0] - 1
@@ -126,7 +126,6 @@ class Render(object):
                 self.drawSquare(v1, v2, v3, v4)
 
             elif len(face) == 3:
-                print(face)
                 f1 = face[0][0] - 1
                 f2 = face[1][0] - 1
                 f3 = face[2][0] - 1
