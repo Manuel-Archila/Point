@@ -55,8 +55,8 @@ def glVertex(x, y):
     rend.point(point_x, point_y)
 
      
-def glColor(r, g, b):
-    rend.setColor(r, g, b)
+def glColor(b, g, r):
+    rend.setColor(b, g, r)
     
 def glFinish(name):
     global rend
@@ -71,10 +71,6 @@ def glLine(x1, y1, x2, y2):
     prop_y1 = (ini_y1 * rend.viewport["height"])/2
     prop_x2 = (ini_x2  * rend.viewport["width"])/2
     prop_y2 = (ini_y2 * rend.viewport["height"])/2
-    print(prop_x1)
-    print(prop_y1)
-    print(prop_x2)
-    print(prop_y2)
 
     rend.line(int(prop_x1), int(prop_y1), int(prop_x2), int(prop_y2))
 
@@ -93,3 +89,7 @@ def getX():
 def getY():
     global rend
     return rend.height
+
+def generate(filename, scale_factor, translate_factor):
+    global rend
+    rend.modelGenerator(filename, scale_factor, translate_factor)
