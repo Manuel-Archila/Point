@@ -95,6 +95,7 @@ class Render(object):
 
     
     def drawSquare(self, v1, v2, v3, v4):
+        #print(v1, v2, v3, v4)
         self.line(round(v1[0]), round(v1[1]), round(v2[0]), round(v2[1]))
         self.line(round(v2[0]), round(v2[1]), round(v3[0]), round(v3[1]))
         self.line(round(v3[0]), round(v3[1]), round(v4[0]), round(v4[1]))
@@ -102,6 +103,7 @@ class Render(object):
         
     
     def drawTriangle(self, v1, v2, v3):
+        #print(v1, v2, v3, v4)
         self.line(round(v1[0]), round(v1[1]), round(v2[0]), round(v2[1]))
         self.line(round(v2[0]), round(v2[1]), round(v3[0]), round(v3[1]))
         self.line(round(v3[0]), round(v3[1]), round(v1[0]), round(v1[1]))

@@ -17,10 +17,10 @@ class Obj(object):
                 if prefix == 'f':
                     self.faces.append([
                         list(
-                            map(self.prueba, face.split('/')))
+                            map(self.doubleDiag, face.split('/')))
                                 for face in value.split(' ')])
 
-    def prueba(self, n):
+    def doubleDiag(self, n):
         if n == '':
             return 0
         else:
