@@ -62,6 +62,10 @@ def glFinish(name):
     global rend
     rend.write(name)
 
+def glFinishZ(name):
+    global rend
+    rend.writeZ(name)
+
 def glLine(x1, y1, x2, y2):
     ini_x1 = (x1 + 1)
     ini_y1 = (y1 + 1)
@@ -90,6 +94,14 @@ def getY():
     global rend
     return rend.height
 
-def generate(filename, scale_factor, translate_factor):
+def generate_wireframe(filename, scale_factor, translate_factor):
+    global rend
+    rend.wireframeGenerator(filename, scale_factor, translate_factor)
+
+def generate_model(filename, scale_factor, translate_factor):
     global rend
     rend.modelGenerator(filename, scale_factor, translate_factor)
+
+def triangle(A, B, C):
+    global rend
+    rend.triangle(A, B, C)
