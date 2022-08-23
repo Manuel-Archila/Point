@@ -1,8 +1,8 @@
-from os import write
 from WriteUtilities import * 
 from Color import *
 import Obj
 from vector import *
+import Textures as t
 
 class Render(object):
     def __init__(self, width, height):
@@ -10,6 +10,7 @@ class Render(object):
         self.clearer = color(255, 255, 255)
         self.width = width
         self.height = height
+        self.texture = None
         self.clear()
     
     def clear(self):
@@ -53,8 +54,8 @@ class Render(object):
         f.write(dword(0))
         
         #pixel data
-        for x in range(self.height):
-            for y in range(self.width):
+        for y in range(self.height):
+            for x in range(self.width):
                 f.write(self.framebuffer[y][x])
         f.close()
 
@@ -83,12 +84,13 @@ class Render(object):
         f.write(dword(0))
         
         #pixel data
-        for x in range(self.height):
-            for y in range(self.width):
+        for y in range(self.height):
+            for x in range(self.width):
                 f.write(self.ebuffer[y][x])
         f.close()
         
     def point(self, x, y):
+        #print(x, y)
         self.framebuffer[x][y] = self.current_color
     
     def line(self, x0, y0, x1, y1):
@@ -115,9 +117,46 @@ class Render(object):
 
         for x in range(x0, x1+1):
             if steep:
-                self.point(y, x)
-            else:
                 self.point(x, y)
+            else:
+                self.point(y, x)
+            offset += dy * 2
+
+            if offset >= treshold:
+                y += 1 if y0 < y1 else - 1
+                treshold += dx * 2
+
+    def lineVector(self, v1, v2):
+        x0 = round(v1.x)
+        y0 = round(v1.y)
+        x1  = round(v2.x)
+        y1 = round(v2.y)
+        dy = abs(y1 - y0)
+        dx = abs(x1 - x0)
+        m = dy * 2
+
+        steep = dy > dx
+
+        if steep:
+            x0, y0 = y0, x0
+            x1, y1 = y1, x1
+        
+        if x0 > x1:
+            x0, x1 = x1, x0
+            y0, y1 = y1, y0
+        
+        dy = abs(y1 - y0)
+        dx = abs(x1 - x0)
+
+        offset = 0
+        treshold = dx
+        y = y0
+
+        for x in range(x0, x1+1):
+            if steep:
+                self.point(x, y)
+            else:
+                self.point(y, x)
             offset += dy * 2
 
             if offset >= treshold:
@@ -156,6 +195,7 @@ class Render(object):
     def modelGenerator(self, filename, scale_factor, translate_factor):
         cube = Obj.Obj(filename)
         for face in cube.faces:
+            #print(face)
             if len(face) == 4:
                 f1 = face[0][0] - 1
                 f2 = face[1][0] - 1
@@ -166,9 +206,21 @@ class Render(object):
                 v2 = self.transform_vertex(cube.vertices[f2], scale_factor, translate_factor)
                 v3 = self.transform_vertex(cube.vertices[f3], scale_factor, translate_factor)
                 v4 = self.transform_vertex(cube.vertices[f4], scale_factor, translate_factor)
+                if self.texture:
+                    ft1 = face[0][1] - 1
+                    ft2 = face[1][1] - 1
+                    ft3 = face[2][1] - 1
+                    ft4 = face[3][1] - 1
 
-                self.triangle(v1, v2, v3)
-                self.triangle(v1, v3, v4)
+                    vt1 = V3(*cube.vt_vertices[ft1])
+                    vt2 = V3(*cube.vt_vertices[ft2])
+                    vt3 = V3(*cube.vt_vertices[ft3])
+                    vt4 = V3(*cube.vt_vertices[ft4])
+                    self.triangle((v1, v2, v3), (vt1, vt2, vt3))
+                    self.triangle((v3, v4, v1), (vt3, vt4, vt1))
+                else:
+                    self.triangle((v1, v3, v4))
+                    self.triangle((v1, v2, v3))
 
             elif len(face) == 3:
                 f1 = face[0][0] - 1
@@ -178,8 +230,17 @@ class Render(object):
                 v1 = self.transform_vertex(cube.vertices[f1], scale_factor, translate_factor)
                 v2 = self.transform_vertex(cube.vertices[f2], scale_factor, translate_factor)
                 v3 = self.transform_vertex(cube.vertices[f3], scale_factor, translate_factor)
+                if self.texture:
+                    ft1 = face[0][1] - 1
+                    ft2 = face[1][1] - 1
+                    ft3 = face[2][1] - 1
 
-                self.triangle(v1, v2, v3)
+                    vt1 = V3(*cube.vt_vertices[ft1])
+                    vt2 = V3(*cube.vt_vertices[ft2])
+                    vt3 = V3(*cube.vt_vertices[ft3])
+                    self.triangle((v1, v2, v3), (vt1, vt2, vt3))
+                else:
+                    self.triangle((v1, v2, v3))
 
     def wireframeGenerator(self, filename, scale_factor, translate_factor):
         cube = Obj.Obj(filename)
@@ -225,9 +286,12 @@ class Render(object):
         u = cx/cz
         v = cy/cz
         w = 1 - (cx + cy)/cz
-        return [u, v, w]
+        return [w, v, u]
     
-    def triangle(self, A, B, C):
+    def triangle(self, vertices, tvertices = None):
+        A, B, C = vertices
+        if self.texture:
+            tA, tB, tC = tvertices
         L = V3(0, 0, -1)
         N = (C - A) * (B - A)
         i = N.norm() @ L.norm()
@@ -245,8 +309,13 @@ class Render(object):
                     continue
 
                 z = A.z * w + B.z * v + C.z * u
+                #print(z)
                 conv = z/self.width
                 if self.zbuffer[x][y] < z:
                     self.zbuffer[x][y] = z
                     self.ebuffer[x][y] = color(255 * conv, 255 * conv, 255 * conv)
-                    self.point(x, y)
+                    if self.texture:
+                        tx = tA.x * w + tB.x * u + tC.x * v
+                        ty = tA.y * w + tB.y * u + tC.y * v
+                        self.current_color = self.texture.get_color_with_intensity(tx, ty, i)
+                    self.point(y, x)

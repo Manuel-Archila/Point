@@ -5,13 +5,20 @@ class Obj(object):
         
         self.vertices = []
         self.faces = []
+        self.vt_vertices = []
 
         for line in self.lines:
             if line:
+                #print(line)
                 prefix, value = line.split(' ', 1)
 
                 if prefix == 'v':
                     self.vertices.append(
+                        list(
+                            map(float, value.split(' '))))
+                
+                if prefix == 'vt':
+                    self.vt_vertices.append(
                         list(
                             map(float, value.split(' '))))
                 if prefix == 'f':

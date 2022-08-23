@@ -1,4 +1,5 @@
 from Render import *
+from Textures import *
 
 rend = None
 
@@ -102,6 +103,6 @@ def generate_model(filename, scale_factor, translate_factor):
     global rend
     rend.modelGenerator(filename, scale_factor, translate_factor)
 
-def triangle(A, B, C):
+def assign_texture(name):
     global rend
-    rend.triangle(A, B, C)
+    rend.texture = Texture(name)

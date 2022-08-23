@@ -1,5 +1,5 @@
 def color(r,g,b):
-        return bytes([round(r),round(g),round(b)])
+        return bytes([round(b),round(g),round(r)])
 
 def zcolor(z):
         z = int(z*255)
