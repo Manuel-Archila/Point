@@ -3,6 +3,8 @@ from Color import *
 import Obj
 from vector import *
 import Textures as t
+import math as m
+from matrix import *
 
 class Render(object):
     def __init__(self, width, height):
@@ -11,8 +13,107 @@ class Render(object):
         self.width = width
         self.height = height
         self.texture = None
+        self.Model = None
+        self.View = None
+        self.Projection = None
+        self.Viewport = None
         self.clear()
+
+    def loadModelMatrix(self, translate=(0, 0, 0), scale=(1, 1, 1), rotate = (0, 0, 0)):
+
+        translate = V3(*translate)
+        scale = V3(*scale)
+        rotate = V3(*rotate)
+
+        translationMatrix = M([
+            [1, 0, 0, translate.x],
+            [0, 1, 0, translate.y],
+            [0, 0, 1, translate.z],
+            [0, 0, 0, 1],
+            ])
+        
+        scaleMatrix = M([
+            [scale.x, 0, 0, 0],
+            [0, scale.y, 0, 0],
+            [0, 0, scale.z, 0],
+            [0, 0, 0, 1]
+        ])
+
+        a = rotate.x
+        rotation_x = M([
+            [1,      0,       0, 0],
+            [0, m.cos(a), m.asin(a), 0],
+            [0, m.sin(a),  m.cos(a), 0],
+            [0,      0,       0, 1],
+        ])
+
+        a = rotate.y
+        rotation_y = M([
+            [m.cos(a), 0, m.sin(a), 0],
+            [     0,      1, 0, 0],
+            [m.asin(a), 0, m.cos(a), 0],
+            [     0,      0, 0, 1],
+        ])
+
+        a = rotate.z
+        rotation_z = M([
+            [m.cos(a), m.asin(a), 0, 0],
+            [m.sin(a), m.cos(a), 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, 1],
+        ])
+
+        rotationMatrix = rotation_x * rotation_y
+        rotationMatrix = rotationMatrix * rotation_z
+        self.Model = translationMatrix * rotationMatrix * scaleMatrix
     
+    def loadViewMatrix(self, x, y, z, center):
+        Mi = M([
+            [x.x, x.y, x.z, 0],
+            [y.x, y.y, y.z, 0],
+            [z.x, z.y, z.z, 0],
+            [0, 0, 0, 1]
+        ])
+
+        O = M([
+            [1, 0, 0, -center.x],
+            [0, 1, 0, -center.y],
+            [0, 0, 1, -center.z],
+            [0, 0, 0, 1]
+        ])
+
+        self.View = Mi * O
+
+    def lookAt(self, eye, center, up):
+        eye = V3(*eye)
+        center = V3(*center)
+        up = V3(*up)
+        z = (eye - center).norm()
+        x = (up * z).norm()
+        y = (z * x).norm()
+        self.loadViewMatrix(x, y, z, center)
+        self.loadProjectionMatrix(eye, center)
+        self.loadViewportMatrix()
+
+    def loadProjectionMatrix(self, eye, center):
+        coef = -1/eye.length() - center.length()
+        self.Projection = M([
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, coef, 1]
+        ])
+    
+    def loadViewportMatrix(self):
+        x = 0
+        y = 0
+        self.Viewport = M([
+            [self.width/2, 0, 0, x + self.width/2],
+            [0, self.height/2, 0, y + self.height/2],
+            [0, 0, 128, 128],
+            [0, 0, 0, 1]
+        ])
+
     def clear(self):
         self.framebuffer=[
             [self.clearer for x in range(self.width)]
@@ -189,10 +290,24 @@ class Render(object):
         self.line(round(v2.x), round(v2.y), round(v3.x), round(v3.y))
         self.line(round(v3.x), round(v3.y), round(v1.x), round(v1.y))
     
-    def transform_vertex(self, vertex, scale, translate):
-        return V3((vertex[0] * scale[0]) + translate[0], (vertex[1] * scale[1] + translate[1]), (vertex[2] * scale[2] + translate[2]))
+    def transform_vertex(self, vertex):
+        augmented_vertex =M([
+            [vertex[0]],
+            [vertex[1]],
+            [vertex[2]],
+            [1]
+        ])
+
+        transformed_vertex = self.Viewport * self.Projection * self.View * self.Model * augmented_vertex
+        #return transformed_vertex
+        return V3(
+            transformed_vertex.mat[0][0] / transformed_vertex.mat[3][0],
+            transformed_vertex.mat[1][0] / transformed_vertex.mat[3][0],
+            transformed_vertex.mat[2][0] / transformed_vertex.mat[3][0]
+        )
     
-    def modelGenerator(self, filename, scale_factor, translate_factor):
+    def modelGenerator(self, filename, scale = (1, 1, 1), translate = (0, 0, 0), rotate = (0, 0, 0)):
+        self.loadModelMatrix(translate, scale, rotate)
         cube = Obj.Obj(filename)
         for face in cube.faces:
             #print(face)
@@ -202,10 +317,10 @@ class Render(object):
                 f3 = face[2][0] - 1
                 f4 = face[3][0] - 1
     
-                v1 = self.transform_vertex(cube.vertices[f1], scale_factor, translate_factor)
-                v2 = self.transform_vertex(cube.vertices[f2], scale_factor, translate_factor)
-                v3 = self.transform_vertex(cube.vertices[f3], scale_factor, translate_factor)
-                v4 = self.transform_vertex(cube.vertices[f4], scale_factor, translate_factor)
+                v1 = self.transform_vertex(cube.vertices[f1])
+                v2 = self.transform_vertex(cube.vertices[f2])
+                v3 = self.transform_vertex(cube.vertices[f3])
+                v4 = self.transform_vertex(cube.vertices[f4])
                 if self.texture:
                     ft1 = face[0][1] - 1
                     ft2 = face[1][1] - 1
@@ -227,9 +342,9 @@ class Render(object):
                 f2 = face[1][0] - 1
                 f3 = face[2][0] - 1
     
-                v1 = self.transform_vertex(cube.vertices[f1], scale_factor, translate_factor)
-                v2 = self.transform_vertex(cube.vertices[f2], scale_factor, translate_factor)
-                v3 = self.transform_vertex(cube.vertices[f3], scale_factor, translate_factor)
+                v1 = self.transform_vertex(cube.vertices[f1])
+                v2 = self.transform_vertex(cube.vertices[f2])
+                v3 = self.transform_vertex(cube.vertices[f3])
                 if self.texture:
                     ft1 = face[0][1] - 1
                     ft2 = face[1][1] - 1
@@ -242,7 +357,8 @@ class Render(object):
                 else:
                     self.triangle((v1, v2, v3))
 
-    def wireframeGenerator(self, filename, scale_factor, translate_factor):
+    def wireframeGenerator(self, filename, scale = (1, 1, 1), translate = (0, 0, 0), rotate = (0, 0, 0)):
+        self.loadModelMatrix(translate, scale, rotate)
         cube = Obj.Obj(filename)
         for face in cube.faces:
             if len(face) == 4:
@@ -251,10 +367,10 @@ class Render(object):
                 f3 = face[2][0] - 1
                 f4 = face[3][0] - 1
     
-                v1 = self.transform_vertex(cube.vertices[f1], scale_factor, translate_factor)
-                v2 = self.transform_vertex(cube.vertices[f2], scale_factor, translate_factor)
-                v3 = self.transform_vertex(cube.vertices[f3], scale_factor, translate_factor)
-                v4 = self.transform_vertex(cube.vertices[f4], scale_factor, translate_factor)
+                v1 = self.transform_vertex(cube.vertices[f1])
+                v2 = self.transform_vertex(cube.vertices[f2])
+                v3 = self.transform_vertex(cube.vertices[f3])
+                v4 = self.transform_vertex(cube.vertices[f4])
 
                 self.drawSquare(v1, v2, v3, v4)
 
@@ -263,9 +379,9 @@ class Render(object):
                 f2 = face[1][0] - 1
                 f3 = face[2][0] - 1
     
-                v1 = self.transform_vertex(cube.vertices[f1], scale_factor, translate_factor)
-                v2 = self.transform_vertex(cube.vertices[f2], scale_factor, translate_factor)
-                v3 = self.transform_vertex(cube.vertices[f3], scale_factor, translate_factor)
+                v1 = self.transform_vertex(cube.vertices[f1])
+                v2 = self.transform_vertex(cube.vertices[f2])
+                v3 = self.transform_vertex(cube.vertices[f3])
 
                 self.drawTriangle(v1, v2, v3)
 

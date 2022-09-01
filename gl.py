@@ -95,14 +95,20 @@ def getY():
     global rend
     return rend.height
 
-def generate_wireframe(filename, scale_factor, translate_factor):
+def generate_wireframe(filename, scale, translate, rotate):
     global rend
-    rend.wireframeGenerator(filename, scale_factor, translate_factor)
+    rend.wireframeGenerator(filename, scale, translate, rotate)
 
-def generate_model(filename, scale_factor, translate_factor):
+def generate_model(filename, scale, translate, rotate):
     global rend
-    rend.modelGenerator(filename, scale_factor, translate_factor)
+    rend.modelGenerator(filename, scale, translate, rotate)
 
 def assign_texture(name):
     global rend
     rend.texture = Texture(name)
+
+def glLookat(eye, ceter, up):
+    global rend
+    rend.lookAt(eye, ceter, up)
+
+
