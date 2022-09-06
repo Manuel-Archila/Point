@@ -3,7 +3,7 @@ from Color import *
 import Obj
 from vector import *
 import Textures as t
-import math as m
+from math import *
 from matrix import *
 
 class Render(object):
@@ -42,23 +42,23 @@ class Render(object):
         a = rotate.x
         rotation_x = M([
             [1,      0,       0, 0],
-            [0, m.cos(a), m.asin(a), 0],
-            [0, m.sin(a),  m.cos(a), 0],
+            [0, cos(a), -sin(a), 0],
+            [0, sin(a),  cos(a), 0],
             [0,      0,       0, 1],
         ])
 
         a = rotate.y
         rotation_y = M([
-            [m.cos(a), 0, m.sin(a), 0],
+            [cos(a), 0, sin(a), 0],
             [     0,      1, 0, 0],
-            [m.asin(a), 0, m.cos(a), 0],
+            [-sin(a), 0, cos(a), 0],
             [     0,      0, 0, 1],
         ])
 
         a = rotate.z
         rotation_z = M([
-            [m.cos(a), m.asin(a), 0, 0],
-            [m.sin(a), m.cos(a), 0, 0],
+            [cos(a), -sin(a), 0, 0],
+            [sin(a), cos(a), 0, 0],
             [0, 0, 1, 0],
             [0, 0, 0, 1],
         ])
@@ -93,10 +93,10 @@ class Render(object):
         y = (z * x).norm()
         self.loadViewMatrix(x, y, z, center)
         self.loadProjectionMatrix(eye, center)
-        self.loadViewportMatrix()
+        
 
     def loadProjectionMatrix(self, eye, center):
-        coef = -1/eye.length() - center.length()
+        coef = -1/(eye.length() - center.length())
         self.Projection = M([
             [1, 0, 0, 0],
             [0, 1, 0, 0],
@@ -108,8 +108,8 @@ class Render(object):
         x = 0
         y = 0
         self.Viewport = M([
-            [self.width/2, 0, 0, x + self.width/2],
-            [0, self.height/2, 0, y + self.height/2],
+            [self.width, 0, 0, x + self.width],
+            [0, self.height, 0, y + self.height],
             [0, 0, 128, 128],
             [0, 0, 0, 1]
         ])
@@ -427,6 +427,7 @@ class Render(object):
                 z = A.z * w + B.z * v + C.z * u
                 #print(z)
                 conv = z/self.width
+                print(x, y)
                 if self.zbuffer[x][y] < z:
                     self.zbuffer[x][y] = z
                     self.ebuffer[x][y] = color(255 * conv, 255 * conv, 255 * conv)

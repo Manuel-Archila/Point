@@ -33,6 +33,8 @@ def glViewPort(x, y, width, height):
     else:
         #print("fresco")
         rend.viewport = {"x": x, "y": y, "width": width, "height": height}
+    
+    rend.loadViewportMatrix()
 
 
 def glClear():
