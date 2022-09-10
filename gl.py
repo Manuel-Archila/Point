@@ -113,4 +113,6 @@ def glLookat(eye, ceter, up):
     global rend
     rend.lookAt(eye, ceter, up)
 
-
+def glShader():
+    global rend
+    rend.shader()
