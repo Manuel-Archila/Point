@@ -3,7 +3,7 @@ gl.glCreateWindow(4100, 4100)
 
 gl.glClear()
 gl.glViewPort(0, 0, 1024, 1024)
-
+gl.glShader()
 gl.assign_texture('./Pokemon.bmp')
 #Medium
 #gl.glLookat((0, 0.5, 2), (0, 0, 0), (0, 1, 0))

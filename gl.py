@@ -115,4 +115,12 @@ def glLookat(eye, ceter, up):
 
 def glShader():
     global rend
-    rend.shader()
+    rend.active_shader = rend.shader
+
+def assign_background(name):
+    global rend
+    rend.framebuffer = Texture(name).pixels
+
+def assign_planet_shader():
+    global rend
+    rend.active_shader = rend.planet

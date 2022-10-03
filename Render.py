@@ -5,6 +5,7 @@ from vector import *
 import Textures as t
 from math import *
 from matrix import *
+import random 
 
 class Render(object):
     def __init__(self, width, height):
@@ -110,9 +111,10 @@ class Render(object):
     def loadViewportMatrix(self):
         x = 0
         y = 0
+        print(self.viewport["width"], self.viewport["height"])
         self.Viewport = M([
-            [self.viewport["width"], 0, 0, x + self.viewport["width"]],
-            [0, self.viewport["height"], 0, y + self.viewport["height"]],
+            [self.viewport["width"]/2, 0, 0, x + self.viewport["width"]/2],
+            [0, self.viewport["height"]/2, 0, y + self.viewport["height"]/2],
             [0, 0, 128, 128],
             [0, 0, 0, 1]
         ])
@@ -160,6 +162,7 @@ class Render(object):
         #pixel data
         for y in range(self.height):
             for x in range(self.width):
+                #print(y, x)
                 f.write(self.framebuffer[y][x])
         f.close()
 
@@ -337,52 +340,49 @@ class Render(object):
                     vt2 = V3(*cube.vt_vertices[ft2])
                     vt3 = V3(*cube.vt_vertices[ft3])
                     vt4 = V3(*cube.vt_vertices[ft4])
-
-                    self.vertex_buffer_object.append(v1)
-                    self.vertex_buffer_object.append(v2)
-                    self.vertex_buffer_object.append(v3)
-                    self.vertex_buffer_object.append(vt1)
-                    self.vertex_buffer_object.append(vt2)
-                    self.vertex_buffer_object.append(vt3)
-
-                    self.vertex_buffer_object.append(v3)
-                    self.vertex_buffer_object.append(v4)
-                    self.vertex_buffer_object.append(v1)
-                    self.vertex_buffer_object.append(vt3)
-                    self.vertex_buffer_object.append(vt4)
-                    self.vertex_buffer_object.append(vt1)
-
-
                 else:
-                    self.vertex_buffer_object.append(v1)
-                    self.vertex_buffer_object.append(v2)
-                    self.vertex_buffer_object.append(v3)
-
-                    self.vertex_buffer_object.append(v3)
-                    self.vertex_buffer_object.append(v4)
-                    self.vertex_buffer_object.append(v1)
+                    vt1 = V3(0, 0, 0)
+                    vt2 = V3(0, 0, 0)
+                    vt3 = V3(0, 0, 0)
+                    vt4 = V3(0, 0, 0)
                 
                 if self.active_shader:
-                    print("estoy entrando")
                     fn1 = face[0][2] - 1
                     fn2 = face[1][2] - 1
                     fn3 = face[2][2] - 1
                     fn4 = face[3][2] - 1
-    
+
                     vn1 = V3(*cube.nvertices[fn1])
                     vn2 = V3(*cube.nvertices[fn2])
                     vn3 = V3(*cube.nvertices[fn3])
                     vn4 = V3(*cube.nvertices[fn4])
+                else:
+                    vn1 = V3(0, 0, 0)
+                    vn2 = V3(0, 0, 0)
+                    vn3 = V3(0, 0, 0)
+                    vn4 = V3(0, 0, 0)
 
-                    self.vertex_buffer_object.append(vn1)
-                    self.vertex_buffer_object.append(vn2)
-                    self.vertex_buffer_object.append(vn3)
+                self.vertex_buffer_object.append(v1)
+                self.vertex_buffer_object.append(v2)
+                self.vertex_buffer_object.append(v3)
+                self.vertex_buffer_object.append(vt1)
+                self.vertex_buffer_object.append(vt2)
+                self.vertex_buffer_object.append(vt3)
+                self.vertex_buffer_object.append(vn1)
+                self.vertex_buffer_object.append(vn2)
+                self.vertex_buffer_object.append(vn3)
 
-                    self.vertex_buffer_object.append(vn3)
-                    self.vertex_buffer_object.append(vn4)
-                    self.vertex_buffer_object.append(vn1)
+                self.vertex_buffer_object.append(v3)
+                self.vertex_buffer_object.append(v4)
+                self.vertex_buffer_object.append(v1)
+                self.vertex_buffer_object.append(vt3)
+                self.vertex_buffer_object.append(vt4)
+                self.vertex_buffer_object.append(vt1)
+                self.vertex_buffer_object.append(vn3)
+                self.vertex_buffer_object.append(vn4)
+                self.vertex_buffer_object.append(vn1)
+
                 
-
             elif len(face) == 3:
                 f1 = face[0][0] - 1
                 f2 = face[1][0] - 1
@@ -400,20 +400,12 @@ class Render(object):
                     vt1 = V3(*cube.vt_vertices[ft1])
                     vt2 = V3(*cube.vt_vertices[ft2])
                     vt3 = V3(*cube.vt_vertices[ft3])
-
-                    self.vertex_buffer_object.append(v1)
-                    self.vertex_buffer_object.append(v2)
-                    self.vertex_buffer_object.append(v3)
-                    self.vertex_buffer_object.append(vt1)
-                    self.vertex_buffer_object.append(vt2)
-                    self.vertex_buffer_object.append(vt3)
                 else:
-                    self.vertex_buffer_object.append(v1)
-                    self.vertex_buffer_object.append(v2)
-                    self.vertex_buffer_object.append(v3)
-
+                    vt1 = V3(0, 0, 0)
+                    vt2 = V3(0, 0, 0)
+                    vt3 = V3(0, 0, 0)
+                
                 if self.active_shader:
-                    print("estoy entrando")
                     fn1 = face[0][2] - 1
                     fn2 = face[1][2] - 1
                     fn3 = face[2][2] - 1
@@ -421,10 +413,20 @@ class Render(object):
                     vn1 = V3(*cube.nvertices[fn1])
                     vn2 = V3(*cube.nvertices[fn2])
                     vn3 = V3(*cube.nvertices[fn3])
-
-                    self.vertex_buffer_object.append(vn1)
-                    self.vertex_buffer_object.append(vn2)
-                    self.vertex_buffer_object.append(vn3)
+                else:
+                    vn1 = V3(0, 0, 0)
+                    vn2 = V3(0, 0, 0)
+                    vn3 = V3(0, 0, 0)
+                
+                self.vertex_buffer_object.append(v1)
+                self.vertex_buffer_object.append(v2)
+                self.vertex_buffer_object.append(v3)
+                self.vertex_buffer_object.append(vt1)
+                self.vertex_buffer_object.append(vt2)
+                self.vertex_buffer_object.append(vt3)
+                self.vertex_buffer_object.append(vn1)
+                self.vertex_buffer_object.append(vn2)
+                self.vertex_buffer_object.append(vn3)
                     
         self.generate()
 
@@ -459,7 +461,7 @@ class Render(object):
     def bounding_box(self, A, B, C):
         xs = sorted([A.x, B.x, C.x])
         ys = sorted([A.y, B.y, C.y])
-        return V3(xs[0], ys[0]), V3(xs[2], ys[2])
+        return V3(xs[0], ys[0]), V3(xs[-1], ys[-1])
     
     def cross(self, v1, v2):
         return (v1.y * v2.z - v1.z * v2.y,
@@ -479,26 +481,16 @@ class Render(object):
         A = next(self.vertex_buffer_object)
         B = next(self.vertex_buffer_object)
         C = next(self.vertex_buffer_object)
-        if self.texture:
-            tA = next(self.vertex_buffer_object)
-            tB = next(self.vertex_buffer_object)
-            tC = next(self.vertex_buffer_object)
-        if self.active_shader:
-            nA = next(self.vertex_buffer_object)
-            nB = next(self.vertex_buffer_object)
-            nC = next(self.vertex_buffer_object)
-
-        N = (C - A) * (B - A)
-        L = V3(0, 0, -1)
-        i = N.norm() @ L.norm()
-
-        if i <= 0 or i > 1:
-            return
+        #print('A, B, C: ', A, B, C)
+        tA = next(self.vertex_buffer_object)
+        tB = next(self.vertex_buffer_object)
+        tC = next(self.vertex_buffer_object)
+        #print('tA, tB, tC: ', tA, tB, tC)
+        nA = next(self.vertex_buffer_object)
+        nB = next(self.vertex_buffer_object)
+        nC = next(self.vertex_buffer_object)
+        #print('nA, nB, nC: ', nA, nB, nC)
         
-        grey = round(255 * i)
-
-        self.current_color = color(grey, grey, grey)
-
         bbox_min, bbox_max = self.bounding_box(A, B, C)
         for x in range(round(bbox_min.x), round(bbox_max.x + 1)):
             for y in range(round(bbox_min.y), round(bbox_max.y + 1)):
@@ -509,36 +501,66 @@ class Render(object):
                 z = A.z * w + B.z * v + C.z * u
                 #print(z)
                 conv = z/self.width
+                #print(x, y)
                 if self.zbuffer[x][y] < z:
                     self.zbuffer[x][y] = z
                     self.ebuffer[x][y] = color(255 * conv, 255 * conv, 255 * conv)
 
                     if(self.active_shader):
+                        #print("Hay shader")
                         self.current_color = self.active_shader(
-                                            self,
                                             bar = (w, u, v),
                                             vertices = (A, B, C),
                                             texture_coords = (tA, tB, tC),
                                             normals = (nA, nB, nC),
-                                            light = self.light
+                                            light = self.light,
+                                            height = y,
+                                            width = x
                                             )
                     else:
                         if self.texture:
+                            print("Hay textura")
                             tx = tA.x * w + tB.x * u + tC.x * v
                             ty = tA.y * w + tB.y * u + tC.y * v
                             self.current_color = self.texture.get_color_with_intensity(tx, ty, i)
+                        else:
+                            N = (C - A) * (B - A)
+                            L = V3(0, 0, -1)
+                            i = N.norm() @ L.norm()
+
+                            if i <= 0 or i > 1:
+                                return
+                            
+                            grey = round(255 * i)
+
+                            self.current_color = color(grey, grey, grey)
+                    
                     self.point(y, x)
+    '''
+        N = (C - A) * (B - A)
+        L = V3(0, 0, -1)
+        i = N.norm() @ L.norm()
+
+        if i <= 0 or i > 1:
+            return
+        
+        grey = round(255 * i)
+
+        self.current_color = color(grey, grey, grey)
+        '''
     
     def generate(self):
         self.vertex_buffer_object = iter(self.vertex_buffer_object)
         try:
             while True:
+                #print("Me llaman")
                 self.triangle()
         except Exception:
             StopIteration
    
-    def shader(render, **kwargs):
-        tA, tB, tC = kwargs['texture_coordinates']
+    def shader(self, **kwargs):
+        print("Estoy entrando")
+        tA, tB, tC = kwargs['texture_coords']
         w, u, v = kwargs['bar']
         L = kwargs['light']
         A, B, C = kwargs['vertices']
@@ -550,9 +572,75 @@ class Render(object):
         iC = nC.norm() @ L.norm()
 
         i = iA * w + iB * u + iC * v
+        i *= -1
 
-        if render.texture:
+        if self.texture:
             tx = tA.x * w + tB.x * u + tC.x * v
             ty = tA.y * w + tB.y * u + tC.y * v
-            b, g, r = render.texture.get_color_with_intensity(tx, ty, i)
-            return color(r, g, b) 
+            return self.texture.get_color_with_intensity(tx, ty, i) 
+    
+    def planet(self, **kwargs):
+        tA, tB, tC = kwargs['texture_coords']
+        w, u, v = kwargs['bar']
+        L = kwargs['light']
+        A, B, C = kwargs['vertices']
+        nA, nB, nC = kwargs['normals']
+        x = kwargs['width']
+        y = kwargs['height']
+
+        iA = nA.norm() @ L.norm()
+        iB = nB.norm() @ L.norm()
+        iC = nC.norm() @ L.norm()
+
+        i = iA * w + iB * u + iC * v
+        i *= -1
+
+        if y > 620 and y < 800:
+            rando = random.randint(0, 2)
+            if y < 630 and rando == 1:
+                return color(164 * i, 179 * i, 191 * i)
+            return color(121 *i, 112*i, 103*i)
+        
+        if y > 585 and y <= 620:
+            rando = random.randint(0, 2)
+            if y < 595 and rando == 1:
+                return color(166 * i, 129 * i, 96 * i)
+            return color(164 *i, 179*i, 191*i)
+        
+        if y > 535 and y <= 585:
+            rando = random.randint(0, 2)
+            if y < 545 and rando == 1:
+                return color(164 *i, 179*i, 191*i)
+            return color(166 * i, 129 * i, 96 * i)
+        
+        if y > 505 and y <= 535:
+            rando = random.randint(0, 2)
+            if y < 515 and rando == 1:
+                return color(148 * i, 122 * i, 99 * i)
+            return color(164 *i, 179*i, 191*i)
+
+        if y > 440 and y <= 505:
+            rando = random.randint(0, 2)
+            if y < 450 and rando == 1:
+                return color(157 * i, 162 * i, 168 * i) 
+            return color(148 * i, 122 * i, 99 * i)
+        
+        if y > 400 and y <= 440:
+            rando = random.randint(0, 2)
+            if y < 410 and rando == 1:
+                return color(120 *i, 117*i, 112*i)
+            return color(145 * i, 146 * i, 151 * i)
+        
+        if y > 360 and y <= 400:
+            rando = random.randint(0, 2)
+            if y < 370 and rando == 1:
+                return color(121 * i, 112 * i, 103 * i)
+            return color(120 * i, 117 * i, 112 * i)
+        
+        if y > 280 and y <= 360:
+            rando = random.randint(0, 2)
+            return color(121 * i, 112 * i, 103 * i)
+
+        
+
+        return color(255 *i, 0, 0)
