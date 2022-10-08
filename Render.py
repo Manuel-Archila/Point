@@ -22,7 +22,9 @@ class Render(object):
         self.active_shader = None
         self.light = V3(0, 0, -1)
         self.vertex_buffer_object = []
+        self.normalmap = None
         self.clear()
+        self.intensity = 1
 
     def loadModelMatrix(self, translate=(0, 0, 0), scale=(1, 1, 1), rotate = (0, 0, 0)):
         translate = V3(*translate)
@@ -498,68 +500,81 @@ class Render(object):
                 if w < 0 or v < 0 or u < 0:
                     continue
 
-                z = A.z * w + B.z * v + C.z * u
+                z = A.z * w + B.z * u + C.z * v
                 #print(z)
                 conv = z/self.width
                 #print(x, y)
-                if self.zbuffer[x][y] < z:
-                    self.zbuffer[x][y] = z
-                    self.ebuffer[x][y] = color(255 * conv, 255 * conv, 255 * conv)
+                if self.zbuffer[y][x] < z:
+                    self.zbuffer[y][x] = z
+                    #self.ebuffer[y][x] = color(255 * conv, 255 * conv, 255 * conv)
 
-                    if(self.active_shader):
-                        #print("Hay shader")
-                        self.current_color = self.active_shader(
-                                            bar = (w, u, v),
-                                            vertices = (A, B, C),
-                                            texture_coords = (tA, tB, tC),
-                                            normals = (nA, nB, nC),
-                                            light = self.light,
-                                            height = y,
-                                            width = x
-                                            )
+                    if self.normalmap:
+                        #print("hay map")
+                        tx = tA.x * w + tB.x * u + tC.x * v
+                        ty = tA.y * w + tB.y * u + tC.y * v
+
+                        normal_color = self.normalmap.get_color_with_intensity(tx, ty, 1)
+
+                        normal = V3(normal_color[2], normal_color[1], normal_color[0])
+                        L = self.light
+                        i = normal.norm() @ L.norm()
+                        i *=self.intensity
+                        #print(i)
+                        
+                        self.current_color = self.texture.get_color_with_intensity(tx, ty, i)
                     else:
-                        if self.texture:
-                            print("Hay textura")
-                            tx = tA.x * w + tB.x * u + tC.x * v
-                            ty = tA.y * w + tB.y * u + tC.y * v
-                            self.current_color = self.texture.get_color_with_intensity(tx, ty, i)
+                        if(self.active_shader):
+                            #print("Hay shader")
+                            self.current_color = self.active_shader(
+                                                bar = (w, u, v),
+                                                vertices = (A, B, C),
+                                                texture_coords = (tA, tB, tC),
+                                                normals = (nA, nB, nC),
+                                                light = self.light,
+                                                height = y,
+                                                width = x
+                                                )
                         else:
-                            N = (C - A) * (B - A)
-                            L = V3(0, 0, -1)
-                            i = N.norm() @ L.norm()
+                            if self.texture:
+                                #print("Hay textura")
 
-                            if i <= 0 or i > 1:
-                                return
-                            
-                            grey = round(255 * i)
+                                N = (C - A) * (B - A)
+                                L = V3(0, 0, -1)
+                                i = N.norm() @ L.norm()
+                                i *= self.intensity
+                                #print(i)
 
-                            self.current_color = color(grey, grey, grey)
-                    
+                                tx = tA.x * w + tB.x * u + tC.x * v
+                                ty = tA.y * w + tB.y * u + tC.y * v
+                                self.current_color = self.texture.get_color_with_intensity(tx, ty, i)
+                            else:
+                                N = (C - A) * (B - A)
+                                L = V3(0, 0, -1)
+                                i = N.norm() @ L.norm()
+
+                                if i <= 0 or i > 1:
+                                    return
+                                
+                                grey = round(255 * i)
+
+                                self.current_color = color(grey, grey, grey)
                     self.point(y, x)
-    '''
-        N = (C - A) * (B - A)
-        L = V3(0, 0, -1)
-        i = N.norm() @ L.norm()
-
-        if i <= 0 or i > 1:
-            return
-        
-        grey = round(255 * i)
-
-        self.current_color = color(grey, grey, grey)
-        '''
     
     def generate(self):
         self.vertex_buffer_object = iter(self.vertex_buffer_object)
         try:
             while True:
-                #print("Me llaman")
+            #print("Me llaman")
                 self.triangle()
         except Exception:
             StopIteration
+            self.vertex_buffer_object = []
+            self.texture = None
+            self.active_shader = None
+            self.normalmap = None
    
     def shader(self, **kwargs):
-        print("Estoy entrando")
+        #print("Estoy entrando")
         tA, tB, tC = kwargs['texture_coords']
         w, u, v = kwargs['bar']
         L = kwargs['light']
@@ -571,8 +586,8 @@ class Render(object):
         iB = nB.norm() @ L.norm()
         iC = nC.norm() @ L.norm()
 
-        i = iA * w + iB * u + iC * v
-        i *= -1
+        i = iA * w + iB * u + iC * v 
+        
 
         if self.texture:
             tx = tA.x * w + tB.x * u + tC.x * v
@@ -594,7 +609,6 @@ class Render(object):
 
         i = iA * w + iB * u + iC * v
         i *= -1
-
         if y > 620 and y < 800:
             rando = random.randint(0, 2)
             if y < 630 and rando == 1:

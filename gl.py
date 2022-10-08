@@ -124,3 +124,10 @@ def assign_background(name):
 def assign_planet_shader():
     global rend
     rend.active_shader = rend.planet
+
+def assign_normalmap(name):
+    global rend
+    rend.normalmap = Texture(name)
+
+def glIntensity(num):
+    rend.intensity = num

@@ -23,6 +23,7 @@ class Texture:
                     self.pixels[y].append(
                         color(r, g, b)
                     )
+
     def get_color_with_intensity(self, tx, ty, intensity):
         x = round(tx * self.width)
         y = round(ty * self.height)
@@ -35,5 +36,3 @@ class Texture:
             max(min(r, 255), 0),
             max(min(g, 255), 0),
             max(min(b, 255), 0))
-
-
